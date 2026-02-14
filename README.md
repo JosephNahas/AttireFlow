@@ -3,22 +3,36 @@ Group Name: [The 404s]
 
 Team Members: [Jenny Nguyen], [Annie Nguyen], [Anupa Ragoonanan], [Joseph Nahas]
 
-Project Overview:
+Project Overview
 
-Attire Flow is a robust, full-stack inventory management system designed for multi-location clothing distribution networks. Managing clothing logistics requires precision, especially when handling various brands and shifting stock between regional distribution centers.
+What We're Building:
+Build an inventory management system for a fashion warehouse with multi-location distribution.
 
-This application provides a centralized dashboard for administrators to monitor stock health, manage product catalogs, and orchestrate inventory transfers to prevent stockouts and overstocking.
+Key Innovation: 
+Unlike basic inventory systems, Attire Flow implements role-based inventory control with:
+Transfer workflows (PENDING → APPROVED → COMPLETED)
+Reorder-level alerts for low stock
+Supplier-linked products for purchase tracking
+Audit trails via Transfer logs
 
-Core Features:
 
-Centralized Dashboard: Real-time visualization of total inventory value and stock distribution across all locations.
+How It Works:
+Admin creates Brands, Products, Warehouses, and Suppliers in the system.
+Variants (size/color combos) are linked to Products -  each with its own SKU and price.
+Inventory is tracked per Variant per Warehouse, with reorder-level alerts.
 
-Multi-Location Management: Track inventory specifically by Distribution Center.
+Managers can:
+View stock levels
+Restock inventory when low
 
-Product & Brand Catalog: Full CRUD operations for items and their respective brands.
+Admins oversee everything:
+Approve/audit Transfers
+Manage Suppliers and Users
+Maintain product catalogs
 
-Inventory Transfers: Move stock between locations with automated balance updates.
+The system ensures data integrity through role-based access , no customer-facing storefront through:
+Role-based access control
+Low-stock notifications
 
-Low Stock Alerts: Visual indicators and notifications when items fall below a defined threshold.
+Note: There is no customer-facing storefront - this is strictly an internal warehouse management tool. Inventory is managed at fixed warehouse locations with no transfers between them.
 
-Admin Authentication: Secure access for warehouse managers and staff.
