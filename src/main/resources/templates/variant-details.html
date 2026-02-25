@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Variant Details - AttireFlow</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .muted { color: #666; }
+        .card { border: 1px solid #ddd; padding: 12px; margin: 12px 0; background: #fafafa; }
+        table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+        th, td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
+        th { background: #f5f5f5; text-align: left; }
+        a { color: #0b57d0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; margin: 2px 6px 2px 0; }
+    </style>
+</head>
+<body>
+
+<p class="muted"><a href="/inventory">← Back to Inventory</a></p>
+
+<h1 th:text="${details.variant.title}">Variant</h1>
+
+<div class="card">
+    <div>
+        <strong>Product details:</strong>
+        <span class="pill" th:text="${details.variant.category}">Category</span>
+        <span class="pill">Size: <span th:text="${details.variant.size}">M</span></span>
+        <span class="pill">Color: <span th:text="${details.variant.color}">Black</span></span>
+    </div>
+    <div style="margin-top: 8px;">
+        <strong>Unit price:</strong> $<span th:text="${details.unitPrice}">0.00</span>
+        &nbsp;|&nbsp;
+        <strong>Total stock:</strong> <span th:text="${details.totalStock}">0</span>
+        &nbsp;|&nbsp;
+        <strong>Locations:</strong> <span th:text="${details.locationCount}">0</span>
+        &nbsp;|&nbsp;
+        <strong>Total value:</strong> $<span th:text="${details.totalValue}">0.00</span>
+    </div>
+</div>
+
+<h2>Stock by location</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Location</th>
+        <th>Type</th>
+        <th>Bin location</th>
+        <th>Quantity</th>
+        <th>Total value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="loc : ${details.locations}">
+        <td th:text="${loc.locationName}">Main Warehouse</td>
+        <td th:text="${loc.locationType}">Warehouse</td>
+        <td th:text="${loc.binLocation}">A-12-3</td>
+        <td th:text="${loc.quantity}">0</td>
+        <td>$<span th:text="${loc.totalValue}">0.00</span></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
