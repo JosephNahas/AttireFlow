@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Deliveries - AttireFlow</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
+        th { background: #f5f5f5; text-align: left; cursor: pointer; }
+        th a { color: inherit; text-decoration: none; display: block; }
+        th a:hover { text-decoration: underline; }
+        .muted { color: #666; font-size: 0.95em; }
+        .actions form { display: inline; margin-right: 8px; }
+        .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; margin: 2px 6px 2px 0; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; }
+        .badge-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .badge-secondary { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+        a { color: #0b57d0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        button { cursor: pointer; padding: 4px 8px; }
+        .filter-section { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .filter-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .filter-item { display: flex; flex-direction: column; }
+        .filter-item label { font-size: 0.9em; margin-bottom: 4px; color: #666; }
+        .filter-item select, .filter-item input { padding: 6px; border: 1px solid #ddd; min-width: 150px; }
+        .btn { display: inline-block; padding: 8px 16px; background: #0b57d0; color: white; text-decoration: none; border: none; cursor: pointer; }
+        .btn:hover { background: #0a4ab0; text-decoration: none; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        .pagination { margin-top: 20px; display: flex; gap: 10px; align-items: center; }
+        .pagination a { padding: 6px 12px; border: 1px solid #ddd; background: #f8f9fa; color: #0b57d0; }
+        .pagination a:hover { background: #e9ecef; text-decoration: none; }
+        .pagination span { padding: 6px 12px; }
+        .mt-3 { margin-top: 15px; }
+        .mb-3 { margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+<h1>Deliveries</h1>
+<p class="muted">
+    Manage incoming and outgoing delivery orders.
+    <a href="/">Home</a> | <a href="/inventory">Inventory</a>
+</p>
+
+<div class="filter-section">
+    <form method="get" th:action="@{/deliveries}">
+        <input type="hidden" name="page" value="0" />
+        <input type="hidden" name="sort" th:value="${currentSort}" />
+        <div class="filter-row">
+            <div class="filter-item">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All</option>
+                    <option value="Pending" th:selected="${selectedStatus == 'Pending'}">Pending</option>
+                    <option value="In Transit" th:selected="${selectedStatus == 'In Transit'}">In Transit</option>
+                    <option value="Delivered" th:selected="${selectedStatus == 'Delivered'}">Delivered</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Type</label>
+                <select name="type">
+                    <option value="">All</option>
+                    <option value="Express" th:selected="${selectedType == 'Express'}">Express</option>
+                    <option value="Regular" th:selected="${selectedType == 'Regular'}">Regular</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Location</label>
+                <input type="text" name="location" th:value="${selectedLocation}" placeholder="Enter location">
+            </div>
+            <div class="filter-item">
+                <button type="submit" class="btn">Filter</button>
+            </div>
+            <div class="filter-item">
+                <a href="/deliveries" class="btn btn-secondary">Clear</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<a href="/deliveries/new" class="btn mb-3">Create New Delivery</a>
+
+<table>
+    <thead>
+    <tr>
+        <th><a th:href="@{/deliveries(page=0, sort='id,' + ${#strings.toLowerCase(currentSort.contains('desc') ? 'asc' : 'desc')}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">ID</a></th>
+        <th><a th:href="@{/deliveries(page=0, sort='deliveryType,' + ${#strings.toLowerCase(currentSort.contains('desc') ? 'asc' : 'desc')}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Type</a></th>
+        <th><a th:href="@{/deliveries(page=0, sort='location,' + ${#strings.toLowerCase(currentSort.contains('desc') ? 'asc' : 'desc')}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Location</a></th>
+        <th><a th:href="@{/deliveries(page=0, sort='deliveryDate,' + ${#strings.toLowerCase(currentSort.contains('desc') ? 'asc' : 'desc')}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Delivery Date</a></th>
+        <th>Item</th>
+        <th>Quantity</th>
+        <th><a th:href="@{/deliveries(page=0, sort='status,' + ${#strings.toLowerCase(currentSort.contains('desc') ? 'asc' : 'desc')}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Status</a></th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="delivery : ${deliveriesPage.content}">
+        <td th:text="${delivery.id}">1</td>
+        <td>
+            <span class="pill" th:text="${delivery.deliveryType}">Express</span>
+        </td>
+        <td th:text="${delivery.location}">Toronto</td>
+        <td th:text="${delivery.deliveryDate}">2025-03-15</td>
+        <td>
+            <span th:if="${delivery.variant != null}" th:text="${delivery.variant.title + ' - ' + delivery.variant.color + ' (' + delivery.variant.size + ')'}">T-Shirt</span>
+            <span th:if="${delivery.variant == null}" class="muted">N/A</span>
+        </td>
+        <td th:text="${delivery.quantity}">10</td>
+        <td>
+            <span class="badge" 
+                  th:classappend="${delivery.status == 'Delivered'} ? 'badge-success' : 
+                                  (${delivery.status == 'In Transit'} ? 'badge-warning' : 'badge-secondary')"
+                  th:text="${delivery.status}">Pending</span>
+        </td>
+        <td class="actions">
+            <form th:action="@{'/deliveries/' + ${delivery.id} + '/status'}" method="post">
+                <select name="status" onchange="this.form.submit()" style="padding: 4px;">
+                    <option value="Pending" th:selected="${delivery.status == 'Pending'}">Pending</option>
+                    <option value="In Transit" th:selected="${delivery.status == 'In Transit'}">In Transit</option>
+                    <option value="Delivered" th:selected="${delivery.status == 'Delivered'}">Delivered</option>
+                </select>
+            </form>
+        </td>
+    </tr>
+    <tr th:if="${deliveriesPage.totalElements == 0}">
+        <td colspan="8" style="text-align: center; padding: 30px;" class="muted">
+            No deliveries found. <a href="/deliveries/new">Create your first delivery</a>.
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="pagination" th:if="${deliveriesPage.totalPages > 1}">
+    <a th:if="${deliveriesPage.hasPrevious()}" 
+       th:href="@{/deliveries(page=0, sort=${currentSort}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">First</a>
+    <a th:if="${deliveriesPage.hasPrevious()}" 
+       th:href="@{/deliveries(page=${deliveriesPage.number - 1}, sort=${currentSort}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Previous</a>
+    <span th:text="'Page ' + (${deliveriesPage.number} + 1) + ' of ' + ${deliveriesPage.totalPages}"></span>
+    <a th:if="${deliveriesPage.hasNext()}" 
+       th:href="@{/deliveries(page=${deliveriesPage.number + 1}, sort=${currentSort}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Next</a>
+    <a th:if="${deliveriesPage.hasNext()}" 
+       th:href="@{/deliveries(page=${deliveriesPage.totalPages - 1}, sort=${currentSort}, status=${selectedStatus}, type=${selectedType}, location=${selectedLocation})}">Last</a>
+</div>
+
+</body>
+</html>
