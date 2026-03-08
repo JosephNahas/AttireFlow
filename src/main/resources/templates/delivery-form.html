@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Delivery - AttireFlow</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .muted { color: #666; font-size: 0.95em; }
+        a { color: #0b57d0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        button { cursor: pointer; padding: 8px 16px; }
+        .form-container { max-width: 600px; margin-top: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; box-sizing: border-box; }
+        .form-row { display: flex; gap: 20px; }
+        .form-row .form-group { flex: 1; }
+        .btn { background: #0b57d0; color: white; text-decoration: none; border: none; padding: 10px 20px; cursor: pointer; }
+        .btn:hover { background: #0a4ab0; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        .actions { margin-top: 20px; }
+        .error-summary { color: #d32f2f; background: #ffebee; padding: 10px; margin-bottom: 20px; border: 1px solid #ef9a9a; }
+        .field-error { color: #d32f2f; font-size: 0.9em; display: block; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<h1>Create New Delivery Order</h1>
+<p class="muted">
+    Fill in the details to create a new delivery.
+    <a href="/deliveries">Back to Deliveries</a>
+</p>
+
+<div class="form-container">
+    <form th:action="@{/deliveries/save}" th:object="${delivery}" method="post">
+        <div th:if="${#fields.hasErrors('*')}" class="error-summary">
+            <p><strong>Please correct the following errors:</strong></p>
+            <ul>
+                <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Error message</li>
+            </ul>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="deliveryType">Delivery Type:</label>
+                <select id="deliveryType" th:field="*{deliveryType}" required>
+                    <option value="">Select type</option>
+                    <option value="Express">Express</option>
+                    <option value="Regular">Regular</option>
+                </select>
+                <span th:if="${#fields.hasErrors('deliveryType')}" th:errors="*{deliveryType}" class="field-error"></span>
+            </div>
+            
+            <div class="form-group">
+                <label for="deliveryDate">Delivery Date:</label>
+                <input type="date" id="deliveryDate" th:field="*{deliveryDate}" required>
+                <span th:if="${#fields.hasErrors('deliveryDate')}" th:errors="*{deliveryDate}" class="field-error"></span>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="location">Location:</label>
+            <input type="text" id="location" th:field="*{location}" placeholder="e.g., Main Warehouse, Distribution Center North, Retail Store Downtown" required>
+            <span th:if="${#fields.hasErrors('location')}" th:errors="*{location}" class="field-error"></span>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="variantId">Item (Variant):</label>
+                <select id="variantId" name="variantId" required>
+                    <option value="">Select item</option>
+                    <option th:each="variant : ${variants}" 
+                            th:value="${variant.id}" 
+                            th:text="${variant.title + ' - ' + variant.color + ' (' + variant.size + ')'}">
+                    </option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" th:field="*{quantity}" min="1" required>
+                <span th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}" class="field-error"></span>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button type="submit" class="btn">Create Delivery</button>
+            <a href="/deliveries" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
