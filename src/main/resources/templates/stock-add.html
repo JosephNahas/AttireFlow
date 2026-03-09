@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Stock - AttireFlow</title>
+    <meta charset="UTF-8"/>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display:block; margin-top: 10px; }
+        input, select { padding: 8px; width: 360px; max-width: 100%; }
+        .row { margin-top: 14px; }
+        a { color: #0b57d0; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        button { padding: 8px 12px; cursor: pointer; }
+        .muted { color: #666; }
+        .alert { padding: 10px 12px; margin: 14px 0; border-radius: 4px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+<h1>Add Stock</h1>
+<p class="muted">
+    <a th:href="@{'/inventory/' + ${variant.id}}">← Back to Variant Details</a>
+</p>
+
+<div class="row">
+    <strong th:text="${variant.title}">Variant</strong>
+    <div class="muted">
+        <span th:text="${variant.category}">Category</span> |
+        <span th:text="${variant.size}">M</span> |
+        <span th:text="${variant.color}">Black</span>
+    </div>
+</div>
+
+<div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}">
+    Validation error
+</div>
+
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">
+    Success
+</div>
+
+<form th:action="@{'/inventory/' + ${variant.id} + '/stock/new'}" method="post">
+    <label>Location
+        <select name="locationId" required>
+            <option value="">Select location</option>
+            <option th:each="location : ${locations}"
+                    th:value="${location.id}"
+                    th:text="${location.name + ' (' + location.type + ')'}"
+                    th:selected="${selectedLocationId != null and selectedLocationId == location.id}">
+                Main Warehouse
+            </option>
+        </select>
+    </label>
+
+    <label>Quantity to Add
+        <input type="number" name="quantity" min="1" required th:value="${enteredQuantity}"/>
+    </label>
+
+    <label>Bin Location
+        <select name="binLocation" required>
+            <option value="">Select bin location</option>
+            <option th:each="bin : ${binLocations}"
+                    th:value="${bin}"
+                    th:text="${bin}"
+                    th:selected="${selectedBinLocation == bin}">
+                A-12-3
+            </option>
+        </select>
+    </label>
+
+    <div class="row">
+        <button type="submit">Add Stock</button>
+        <a th:href="@{'/inventory/' + ${variant.id}}" style="margin-left: 10px;">Cancel</a>
+    </div>
+</form>
+
+</body>
+</html>
