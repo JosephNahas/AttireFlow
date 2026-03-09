@@ -81,3 +81,6 @@ MERGE INTO delivery (id, delivery_type, location, delivery_date, status, variant
 (100, 'Express', 'Main Warehouse', '2025-03-10', 'Delivered', 1, 50, CURRENT_TIMESTAMP),
 (101, 'Regular', 'Distribution Center North', '2025-03-12', 'In Transit', 2, 30, CURRENT_TIMESTAMP),
 (102, 'Express', 'Retail Store Downtown', '2025-03-15', 'Pending', 3, 20, CURRENT_TIMESTAMP);
+
+ALTER TABLE variant_stock ALTER COLUMN id RESTART WITH 20;
+ALTER TABLE variant ALTER COLUMN id RESTART WITH 9;

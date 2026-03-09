@@ -4,9 +4,14 @@ import com._404s.attireflow.inventory.model.Variant;
 import com._404s.attireflow.inventory.repo.VariantRepository;
 import com._404s.attireflow.inventory.service.InventoryService;
 import com._404s.attireflow.inventory.service.VariantDetails;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.math.BigDecimal;
 
 @Controller
 public class InventoryController {
@@ -20,9 +25,82 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory")
-    public String inventory(Model model) {
-        model.addAttribute("rows", inventoryService.getInventory());
+    public String inventory(@RequestParam(required = false) String title,
+                            @RequestParam(required = false) String size,
+                            @RequestParam(required = false) String color,
+                            @RequestParam(required = false) String category,
+                            @RequestParam(defaultValue = "title,asc") String sort,
+                            @RequestParam(defaultValue = "0") int page,
+                            @RequestParam(defaultValue = "5") int pageSize,
+                            Model model) {
+
+        if (title != null && title.trim().isEmpty()) title = null;
+        if (size != null && size.trim().isEmpty()) size = null;
+        if (color != null && color.trim().isEmpty()) color = null;
+        if (category != null && category.trim().isEmpty()) category = null;
+
+        String[] sortParams = sort.split(",");
+        String sortField = sortParams[0];
+        Sort.Direction direction = sortParams.length > 1 && "desc".equalsIgnoreCase(sortParams[1])
+                ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort sortBy = Sort.by(direction, sortField);
+
+        PageRequest pageable = PageRequest.of(page, pageSize, sortBy);
+
+        model.addAttribute("inventoryPage", inventoryService.getInventory(title, size, color, category, pageable));
+        model.addAttribute("sizes", inventoryService.getSizes());
+        model.addAttribute("colors", inventoryService.getColors());
+        model.addAttribute("categories", inventoryService.getCategories());
+        model.addAttribute("selectedTitle", title);
+        model.addAttribute("selectedSize", size);
+        model.addAttribute("selectedColor", color);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("currentSort", sort);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("pageSize", pageSize);
+
         return "inventory";
+    }
+
+    @GetMapping("/inventory/new")
+    public String newVariantForm(Model model) {
+        if (!model.containsAttribute("variant")) {
+            model.addAttribute("variant", new Variant());
+        }
+        return "variant-create";
+    }
+
+    @PostMapping("/inventory/new")
+    public String createVariant(@RequestParam String title,
+                                @RequestParam String category,
+                                @RequestParam String size,
+                                @RequestParam String color,
+                                @RequestParam BigDecimal unitPrice,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            if (title.trim().isEmpty() || category.trim().isEmpty() || size.trim().isEmpty() || color.trim().isEmpty()) {
+                throw new IllegalArgumentException("All fields are required.");
+            }
+            if (unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Unit price must be greater than 0.");
+            }
+
+            Variant variant = new Variant(title.trim(), category.trim(), size.trim(), color.trim(), unitPrice);
+            Variant saved = variantRepository.save(variant);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Variant created successfully.");
+            return "redirect:/inventory/" + saved.getId();
+        } catch (IllegalArgumentException ex) {
+            Variant variant = new Variant(title, category, size, color, unitPrice);
+            redirectAttributes.addFlashAttribute("variant", variant);
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/inventory/new";
+        } catch (Exception ex) {
+            Variant variant = new Variant(title, category, size, color, unitPrice);
+            redirectAttributes.addFlashAttribute("variant", variant);
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to create variant. Please try again.");
+            return "redirect:/inventory/new";
+        }
     }
 
     @GetMapping("/inventory/{id}")
@@ -30,6 +108,56 @@ public class InventoryController {
         VariantDetails details = inventoryService.getVariantDetails(id);
         model.addAttribute("details", details);
         return "variant-details";
+    }
+
+    @GetMapping("/inventory/{id}/stock/new")
+    public String addStockForm(@PathVariable Long id, Model model) {
+        model.addAttribute("variant", inventoryService.getVariant(id));
+        model.addAttribute("locations", inventoryService.getAllLocations());
+        model.addAttribute("binLocations", inventoryService.getAllBinLocations());
+
+        if (!model.containsAttribute("selectedLocationId")) {
+            model.addAttribute("selectedLocationId", null);
+        }
+        if (!model.containsAttribute("selectedBinLocation")) {
+            model.addAttribute("selectedBinLocation", null);
+        }
+        if (!model.containsAttribute("enteredQuantity")) {
+            model.addAttribute("enteredQuantity", null);
+        }
+
+        return "stock-add";
+    }
+
+    @PostMapping("/inventory/{id}/stock/new")
+    public String addStock(@PathVariable Long id,
+                           @RequestParam(required = false) Long locationId,
+                           @RequestParam(required = false) Integer quantity,
+                           @RequestParam(required = false) String binLocation,
+                           RedirectAttributes redirectAttributes) {
+
+        redirectAttributes.addFlashAttribute("selectedLocationId", locationId);
+        redirectAttributes.addFlashAttribute("selectedBinLocation", binLocation);
+        redirectAttributes.addFlashAttribute("enteredQuantity", quantity);
+
+        try {
+            if (locationId == null) {
+                throw new IllegalArgumentException("Please select a location.");
+            }
+            if (quantity == null) {
+                throw new IllegalArgumentException("Please enter a quantity.");
+            }
+
+            inventoryService.addStock(id, locationId, quantity, binLocation);
+            redirectAttributes.addFlashAttribute("successMessage", "Stock added successfully.");
+            return "redirect:/inventory/" + id;
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/inventory/" + id + "/stock/new";
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Unable to add stock. Please try again.");
+            return "redirect:/inventory/" + id + "/stock/new";
+        }
     }
 
     @GetMapping("/inventory/{id}/edit")
@@ -45,7 +173,9 @@ public class InventoryController {
                                 @RequestParam String title,
                                 @RequestParam String category,
                                 @RequestParam String size,
-                                @RequestParam String color) {
+                                @RequestParam String color,
+                                @RequestParam BigDecimal unitPrice,
+                                RedirectAttributes redirectAttributes) {
 
         Variant variant = variantRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Variant not found: " + id));
@@ -54,14 +184,17 @@ public class InventoryController {
         variant.setCategory(category);
         variant.setSize(size);
         variant.setColor(color);
+        variant.setUnitPrice(unitPrice);
 
         variantRepository.save(variant);
-        return "redirect:/inventory";
+        redirectAttributes.addFlashAttribute("successMessage", "Variant updated successfully.");
+        return "redirect:/inventory/" + id;
     }
 
     @PostMapping("/inventory/{id}/delete")
-    public String deleteVariant(@PathVariable Long id) {
+    public String deleteVariant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         variantRepository.deleteById(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Variant deleted successfully.");
         return "redirect:/inventory";
     }
 }

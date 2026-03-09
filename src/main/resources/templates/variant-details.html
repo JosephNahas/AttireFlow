@@ -13,6 +13,10 @@
         a { color: #0b57d0; text-decoration: none; }
         a:hover { text-decoration: underline; }
         .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; margin: 2px 6px 2px 0; }
+        button { padding: 8px 12px; cursor: pointer; }
+        .alert { padding: 10px 12px; margin: 14px 0; border-radius: 4px; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
@@ -20,6 +24,14 @@
 <p class="muted"><a href="/inventory">← Back to Inventory</a></p>
 
 <h1 th:text="${details.variant.title}">Variant</h1>
+
+<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">
+    Success
+</div>
+
+<div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}">
+    Error
+</div>
 
 <div class="card">
     <div>
@@ -36,6 +48,11 @@
         <strong>Locations:</strong> <span th:text="${details.locationCount}">0</span>
         &nbsp;|&nbsp;
         <strong>Total value:</strong> $<span th:text="${details.totalValue}">0.00</span>
+    </div>
+    <div style="margin-top: 12px;">
+        <form th:action="@{'/inventory/' + ${details.variant.id} + '/stock/new'}" method="get">
+            <button type="submit">Add Stock</button>
+        </form>
     </div>
 </div>
 
