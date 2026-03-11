@@ -1,0 +1,134 @@
+th a { 
+    color: inherit; 
+    text-decoration: none; 
+    display: block; 
+}
+     
+        
+.actions form {
+    display: inline;
+    margin-right: 8px;
+}
+      
+.filter-section {
+    background: #f9f9f9;
+    padding: 15px;
+    margin: 20px 0; 
+    border: 1px solid #ddd;
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-item label {
+    font-size: 0.9em;
+    margin-bottom: 4px; 
+    color: #666;
+}
+
+.filter-item select, .filter-item input {
+    padding: 6px;
+    border: 1px solid #ddd;
+    min-width: 150px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0b57d0; 
+    color: white;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #0a4ab0;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.stock-locations ul {
+    padding-left: 0;
+    
+    li {
+        list-style: none;
+    }
+}
+
+.view-btn {
+    background: #a9a9a9;
+}
+
+.view-btn:hover {
+    background: #808080;
+}
+
+.add-btn {
+    background: #28a745;
+}
+
+.add-btn:hover {
+    background: #218838;
+}
+
+.delete-btn {
+    background: #dc3545;
+}
+
+.delete-btn:hover {
+    background: #c82333;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.pagination a {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    background: #f8f9fa;
+    color: #0b57d0;
+}
+
+.pagination a:hover {
+    background: #e9ecef;
+    text-decoration: none;
+}
+
+.pagination span { 
+    padding: 6px 12px;
+}
+
+.alert {
+    padding: 10px 12px;
+    margin: 14px 0;
+    border-radius: 4px;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
