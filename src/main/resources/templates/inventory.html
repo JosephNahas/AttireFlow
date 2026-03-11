@@ -3,184 +3,192 @@
 <head>
     <title>Inventory - AttireFlow</title>
     <meta charset="UTF-8"/>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ddd; padding: 10px; vertical-align: top; }
-        th { background: #f5f5f5; text-align: left; cursor: pointer; }
-        th a { color: inherit; text-decoration: none; display: block; }
-        th a:hover { text-decoration: underline; }
-        .muted { color: #666; font-size: 0.95em; }
-        .actions form { display: inline; margin-right: 8px; }
-        .pill { display: inline-block; padding: 2px 8px; border: 1px solid #ddd; border-radius: 999px; margin: 2px 6px 2px 0; }
-        a { color: #0b57d0; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        button { cursor: pointer; }
-        .filter-section { background: #f9f9f9; padding: 15px; margin-bottom: 20px; border: 1px solid #ddd; }
-        .filter-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-        .filter-item { display: flex; flex-direction: column; }
-        .filter-item label { font-size: 0.9em; margin-bottom: 4px; color: #666; }
-        .filter-item select, .filter-item input { padding: 6px; border: 1px solid #ddd; min-width: 150px; }
-        .btn { display: inline-block; padding: 8px 16px; background: #0b57d0; color: white; text-decoration: none; border: none; cursor: pointer; }
-        .btn:hover { background: #0a4ab0; text-decoration: none; }
-        .btn-secondary { background: #6c757d; }
-        .btn-secondary:hover { background: #5a6268; }
-        .pagination { margin-top: 20px; display: flex; gap: 10px; align-items: center; }
-        .pagination a { padding: 6px 12px; border: 1px solid #ddd; background: #f8f9fa; color: #0b57d0; }
-        .pagination a:hover { background: #e9ecef; text-decoration: none; }
-        .pagination span { padding: 6px 12px; }
-        .top-actions { margin-bottom: 15px; }
-        .alert { padding: 10px 12px; margin: 14px 0; border-radius: 4px; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link th:href="@{/inventory.css}" rel="stylesheet"/>
+    <link th:href="@{/styles.css}" rel="stylesheet"/>
 </head>
+
 <body>
-<h1>Inventory</h1>
-<p class="muted">
-    Showing variants with total stock and stock by location.
-    <a href="/">Home</a> | <a href="/deliveries">Deliveries</a>
-</p>
+    <div class="navigation"></div>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="nav-container">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a th:href="@{/}" class="nav-link"><i class="bi bi-grid"></i> Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/inventory}" class="nav-link"><i class="bi bi-box"></i> Inventory</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/deliveries}" class="nav-link"><i class="bi bi-truck"></i> Deliveries</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
 
-<div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">
-    Success
-</div>
-
-<div class="top-actions">
-    <a href="/inventory/new" class="btn">Create New Variant</a>
-</div>
-
-<div class="filter-section">
-    <form method="get" th:action="@{/inventory}">
-        <input type="hidden" name="page" value="0" />
-        <input type="hidden" name="sort" th:value="${currentSort}" />
-        <div class="filter-row">
-            <div class="filter-item">
-                <label>Variant Title</label>
-                <input type="text" name="title" th:value="${selectedTitle}" placeholder="Search title">
+    <div class="main-body">
+        <div class="header">
+            <div class="intro">
+                <h1>Inventory</h1>
+                <p class="muted">Showing variants with total stock and stock by location.</p>
             </div>
-            <div class="filter-item">
-                <label>Size</label>
-                <select name="size">
-                    <option value="">All</option>
-                    <option th:each="sizeOption : ${sizes}"
-                            th:value="${sizeOption}"
-                            th:text="${sizeOption}"
-                            th:selected="${selectedSize == sizeOption}">M</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Color</label>
-                <select name="color">
-                    <option value="">All</option>
-                    <option th:each="colorOption : ${colors}"
-                            th:value="${colorOption}"
-                            th:text="${colorOption}"
-                            th:selected="${selectedColor == colorOption}">Black</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Category</label>
-                <select name="category">
-                    <option value="">All</option>
-                    <option th:each="categoryOption : ${categories}"
-                            th:value="${categoryOption}"
-                            th:text="${categoryOption}"
-                            th:selected="${selectedCategory == categoryOption}">Tops</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <label>Rows per page</label>
-                <select name="pageSize">
-                    <option value="5" th:selected="${pageSize == 5}">5</option>
-                    <option value="10" th:selected="${pageSize == 10}">10</option>
-                    <option value="20" th:selected="${pageSize == 20}">20</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <button type="submit" class="btn">Filter</button>
-            </div>
-            <div class="filter-item">
-                <a th:href="@{/inventory}" class="btn btn-secondary">Clear</a>
+            <div class="top-actions">
+                <a href="/inventory/new" class="btn">Add New Item</a>
             </div>
         </div>
-    </form>
-</div>
 
-<table>
-    <thead>
-    <tr>
-        <th>
-            <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='title,' + ${#strings.toLowerCase(currentSort == 'title,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Title</a>
-        </th>
-        <th>
-            <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='category,' + ${#strings.toLowerCase(currentSort == 'category,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Category</a>
-        </th>
-        <th>
-            <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='size,' + ${#strings.toLowerCase(currentSort == 'size,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Size / Color</a>
-        </th>
-        <th>
-            <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='totalStock,' + ${#strings.toLowerCase(currentSort == 'totalStock,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Total Stock</a>
-        </th>
-        <th>
-            <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='locationCount,' + ${#strings.toLowerCase(currentSort == 'locationCount,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}"># Locations</a>
-        </th>
-        <th>Stock by Location</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="row : ${inventoryPage.content}">
-        <td th:text="${row.variant.title}">Title</td>
-        <td th:text="${row.variant.category}">Category</td>
-        <td>
-            <span class="pill" th:text="${row.variant.size}">M</span>
-            <span class="pill" th:text="${row.variant.color}">Black</span>
-        </td>
-        <td th:text="${row.totalStock}">0</td>
-        <td th:text="${row.locationCount}">0</td>
-        <td>
-            <div th:if="${#maps.isEmpty(row.stockByLocation)}" class="muted">No stock locations</div>
-            <ul th:if="${!#maps.isEmpty(row.stockByLocation)}">
-                <li th:each="entry : ${row.stockByLocation}">
-                    <strong th:text="${entry.key}">Location</strong>:
-                    <span th:text="${entry.value}">0</span>
-                </li>
-            </ul>
-        </td>
-        <td class="actions">
-            <form th:action="@{'/inventory/' + ${row.variant.id}}" method="get">
-                <button type="submit">View Details</button>
-            </form>
-            <form th:action="@{'/inventory/' + ${row.variant.id} + '/stock/new'}" method="get">
-                <button type="submit">Add Stock</button>
-            </form>
-            <form th:action="@{'/inventory/' + ${row.variant.id} + '/edit'}" method="get">
-                <button type="submit">Update</button>
-            </form>
-            <form th:action="@{'/inventory/' + ${row.variant.id} + '/delete'}" method="post">
-                <button type="submit">Delete</button>
-            </form>
-        </td>
-    </tr>
-    <tr th:if="${inventoryPage.totalElements == 0}">
-        <td colspan="7" style="text-align: center; padding: 30px;" class="muted">
-            No inventory items found for the selected filters.
-        </td>
-    </tr>
-    </tbody>
-</table>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">Success</div>
 
-<div class="pagination" th:if="${inventoryPage.totalPages > 1}">
-    <a th:if="${inventoryPage.hasPrevious()}"
-       th:href="@{/inventory(page=0, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">First</a>
-    <a th:if="${inventoryPage.hasPrevious()}"
-       th:href="@{/inventory(page=${inventoryPage.number - 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Previous</a>
-    <span th:text="'Page ' + (${inventoryPage.number} + 1) + ' of ' + ${inventoryPage.totalPages}"></span>
-    <a th:if="${inventoryPage.hasNext()}"
-       th:href="@{/inventory(page=${inventoryPage.number + 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Next</a>
-    <a th:if="${inventoryPage.hasNext()}"
-       th:href="@{/inventory(page=${inventoryPage.totalPages - 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Last</a>
-</div>
+        <div class="filter-section">
+            <form method="get" th:action="@{/inventory}">
+                <input type="hidden" name="page" value="0" />
+                <input type="hidden" name="sort" th:value="${currentSort}" />
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label>Variant Title</label>
+                        <input type="text" name="title" th:value="${selectedTitle}" placeholder="Search title">
+                    </div>
+                    <div class="filter-item">
+                        <label>Size</label>
+                        <select name="size">
+                            <option value="">All</option>
+                            <option th:each="sizeOption : ${sizes}"
+                                    th:value="${sizeOption}"
+                                    th:text="${sizeOption}"
+                                    th:selected="${selectedSize == sizeOption}">M</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Color</label>
+                        <select name="color">
+                            <option value="">All</option>
+                            <option th:each="colorOption : ${colors}"
+                                    th:value="${colorOption}"
+                                    th:text="${colorOption}"
+                                    th:selected="${selectedColor == colorOption}">Black</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Category</label>
+                        <select name="category">
+                            <option value="">All</option>
+                            <option th:each="categoryOption : ${categories}"
+                                    th:value="${categoryOption}"
+                                    th:text="${categoryOption}"
+                                    th:selected="${selectedCategory == categoryOption}">Tops</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Rows per page</label>
+                        <select name="pageSize">
+                            <option value="5" th:selected="${pageSize == 5}">5</option>
+                            <option value="10" th:selected="${pageSize == 10}">10</option>
+                            <option value="20" th:selected="${pageSize == 20}">20</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <button type="submit" class="btn">Filter</button>
+                    </div>
+                    <div class="filter-item">
+                        <a th:href="@{/inventory}" class="btn btn-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
 
+        <table>
+            <thead>
+            <tr>
+                <th>
+                    <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='title,' + ${#strings.toLowerCase(currentSort == 'title,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Title
+                        <span th:if="${currentSort == 'title,asc'}" th:text="'▲'" class="asc-desc"></span>
+                        <span th:if="${currentSort == 'title,desc'}" th:text="'▼'" class="asc-desc"></span>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='category,' + ${#strings.toLowerCase(currentSort == 'category,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Category
+                        <span th:if="${currentSort == 'category,asc'}" th:text="'▲'" class="asc-desc"></span>
+                        <span th:if="${currentSort == 'category,desc'}" th:text="'▼'" class="asc-desc"></span>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='size,' + ${#strings.toLowerCase(currentSort == 'size,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Size / Color
+                        <span th:if="${currentSort == 'size,asc'}" th:text="'▲'" class="asc-desc"></span>
+                        <span th:if="${currentSort == 'size,desc'}" th:text="'▼'" class="asc-desc"></span>
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='totalStock,' + ${#strings.toLowerCase(currentSort == 'totalStock,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Total Stock
+                        <span th:if="${currentSort == 'totalStock,asc'}" th:text="'▲'" class="asc-desc"></span>
+                        <span th:if="${currentSort == 'totalStock,desc'}" th:text="'▼'" class="asc-desc"></span> 
+                    </a>
+                </th>
+                <th>
+                    <a th:href="@{/inventory(page=0, pageSize=${pageSize}, sort='locationCount,' + ${#strings.toLowerCase(currentSort == 'locationCount,desc' ? 'asc' : 'desc')}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}"># Locations
+                        <span th:if="${currentSort == 'locationCount,asc'}" th:text="'▲'" class="asc-desc"></span>
+                        <span th:if="${currentSort == 'locationCount,desc'}" th:text="'▼'" class="asc-desc"></span>
+                    </a>
+                </th>
+                <th>Stock by Location</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${inventoryPage.content}">
+                <td th:text="${row.variant.title}">Title</td>
+                <td th:text="${row.variant.category}">Category</td>
+                <td>
+                    <span class="pill" th:text="${row.variant.size}">M</span>
+                    <span class="pill" th:text="${row.variant.color}">Black</span>
+                </td>
+                <td th:text="${row.totalStock}">0</td>
+                <td th:text="${row.locationCount}">0</td>
+                <td class="stock-locations">
+                    <div th:if="${#maps.isEmpty(row.stockByLocation)}" class="muted">No stock locations</div>
+                    <ul th:if="${!#maps.isEmpty(row.stockByLocation)}">
+                        <li th:each="entry : ${row.stockByLocation}">
+                            <span th:text="${entry.key}">Location</span>:
+                            <span th:text="${entry.value}" style="font-weight: bold;">0</span>
+                            <span th:text="${entry.value == 1} ? 'unit' : 'units'" style="font-weight: bold;"></span>
+                        </li>
+                    </ul>
+                </td>
+                <td class="actions">
+                    <form th:action="@{'/inventory/' + ${row.variant.id}}" method="get">
+                        <button type="submit" class="btn view-btn">View Details</button>
+                    </form>
+                    <form th:action="@{'/inventory/' + ${row.variant.id} + '/stock/new'}" method="get">
+                        <button type="submit" class="btn add-btn">Add Stock</button>
+                    </form>
+                    <form th:action="@{'/inventory/' + ${row.variant.id} + '/edit'}" method="get">
+                        <button type="submit" class="btn update-btn">Update</button>
+                    </form>
+                    <form th:action="@{'/inventory/' + ${row.variant.id} + '/delete'}" method="post">
+                        <button type="submit" class="btn delete-btn">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${inventoryPage.totalElements == 0}">
+                <td colspan="7" style="text-align: center; padding: 30px;" class="muted">
+                    No inventory items found for the selected filters.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" th:if="${inventoryPage.totalPages > 1}">
+            <a th:if="${inventoryPage.hasPrevious()}"
+            th:href="@{/inventory(page=0, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">« First</a>
+            <a th:if="${inventoryPage.hasPrevious()}"
+            th:href="@{/inventory(page=${inventoryPage.number - 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">‹ Previous</a>
+            <span th:text="'Page ' + (${inventoryPage.number} + 1) + ' of ' + ${inventoryPage.totalPages}"></span>
+            <a th:if="${inventoryPage.hasNext()}"
+            th:href="@{/inventory(page=${inventoryPage.number + 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Next ›</a>
+            <a th:if="${inventoryPage.hasNext()}"
+            th:href="@{/inventory(page=${inventoryPage.totalPages - 1}, pageSize=${pageSize}, sort=${currentSort}, title=${selectedTitle}, size=${selectedSize}, color=${selectedColor}, category=${selectedCategory})}">Last »</a>
+        </div>
+    </div>
 </body>
 </html>
