@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.math.BigDecimal;
 
@@ -25,6 +26,7 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory")
+        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String inventory(@RequestParam(required = false) String title,
                             @RequestParam(required = false) String size,
                             @RequestParam(required = false) String color,
@@ -88,11 +90,13 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory/new")
+        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String newVariantForm() {
         return "redirect:/inventory";
     }
 
     @PostMapping("/inventory/new")
+        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String createVariant(@RequestParam String title,
                                 @RequestParam String category,
                                 @RequestParam String size,
@@ -128,6 +132,7 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory/{id}")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String variantDetails(@PathVariable Long id, Model model) {
         VariantDetails details = inventoryService.getVariantDetails(id);
         model.addAttribute("details", details);
@@ -135,11 +140,13 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory/{id}/stock/new")
+        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String addStockForm() {
         return "redirect:/inventory";
     }
 
     @PostMapping("/inventory/{id}/stock/new")
+        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String addStock(@PathVariable Long id,
                            @RequestParam(required = false) Long locationId,
                            @RequestParam(required = false) Integer quantity,
@@ -176,11 +183,14 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory/{id}/edit")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String editVariant() {
         return "redirect:/inventory";
     }
 
     @PostMapping("/inventory/{id}/edit")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+
     public String updateVariant(@PathVariable Long id,
                                 @RequestParam String title,
                                 @RequestParam String category,
@@ -226,6 +236,7 @@ public class InventoryController {
         }
     }
 @PostMapping("/inventory/{id}/delete")
+@PreAuthorize("hasRole('ADMIN')")
 public String deleteVariant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
     try {
         Variant variant = variantRepository.findById(id)
