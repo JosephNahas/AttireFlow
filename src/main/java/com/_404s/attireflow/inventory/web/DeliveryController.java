@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com._404s.attireflow.inventory.model.Delivery;
 import com._404s.attireflow.inventory.model.Variant;
@@ -32,6 +33,7 @@ public class DeliveryController {
     private VariantRepository variantRepository;
 
     @GetMapping
+     @PreAuthorize("hasRole('DELIVERY_MANAGER') or hasRole('ADMIN')")
     public String listDeliveries(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String type,
@@ -84,11 +86,13 @@ public class DeliveryController {
     }
 
     @GetMapping("/new")
+     @PreAuthorize("hasRole('DELIVERY_MANAGER') or hasRole('ADMIN')")
     public String showCreateForm() {
         return "redirect:/deliveries";
     }
 
     @PostMapping("/save")
+        @PreAuthorize("hasRole('DELIVERY_MANAGER') or hasRole('ADMIN')")
     public String saveDelivery(
             @RequestParam String deliveryType,
             @RequestParam String location,
@@ -146,6 +150,7 @@ public class DeliveryController {
     }
 
     @PostMapping("/{id}/status")
+    @PreAuthorize("hasRole('DELIVERY_MANAGER') or hasRole('ADMIN')")
     public String updateStatus(@PathVariable Long id, @RequestParam String status) {
         deliveryService.updateDeliveryStatus(id, status);
         return "redirect:/deliveries";
