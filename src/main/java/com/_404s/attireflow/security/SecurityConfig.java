@@ -31,7 +31,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults())
+                .formLogin(form -> form.loginPage("/login").permitAll())
                 .logout(logout -> logout.logoutSuccessUrl("/dashboard"))
                 .build();
     }
