@@ -21,41 +21,45 @@
         <form class="bg-dark-subtle p-4 rounded shadow-sm"
               th:action="@{/admin/register-staff}"
               th:object="${staffRegistrationForm}"
-              method="post">
+              method="post"
+              id="staffRegistrationForm">
+
+            <div th:if="${errorMessage}" class="alert alert-danger mb-3" th:text="${errorMessage}"></div>
+
             <!-- first name -->
             <div class="mb-3">
                 <label for="firstName" class="form-label fw-bold">First Name</label>
-                <input type="text" class="form-control" id="firstName" required>
+                <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
             </div>
 
             <!-- last name -->
             <div class="mb-3">
                 <label for="lastName" class="form-label fw-bold">Last Name</label>
-                <input type="text" class="form-control" id="lastName" required>
+                <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
             </div>
 
             <!-- username -->
             <div class="mb-3">
                 <label for="username" class="form-label fw-bold">Username</label>
                 <input type="text" class="form-control" id="username" th:field="*{username}" required>
-                <!-- error message -->
-                <div th:if="${usernameExists}" class="text-danger error-message pt-2">
-                    <small>Username already exists.</small>
-                </div>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
             </div>
 
             <div class="mb-3">
                 <label for="password" class="form-label fw-bold">Password</label>
                 <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
             </div>
 
             <div class="mb-3">
                 <label for="confirmPassword" class="form-label fw-bold">Confirm Password</label>
-                <input type="password" class="form-control" id="confirmPassword" required>
-                <!-- error message -->
-                <div th:if="${passwordMismatch}" class="text-danger error-message pt-2">
-                    <small>Passwords do not match.</small>
+                <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" required>
+                <div id="passwordMismatchMessage" class="text-danger pt-2 d-none">
+                    Passwords do not match.
                 </div>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
             </div>
 
             <div class="mb-3">
@@ -66,6 +70,7 @@
                     <option value="INVENTORY_MANAGER">Inventory Manager</option>
                     <option value="DELIVERY_MANAGER">Delivery Manager</option>
                 </select>
+                <div class="text-danger pt-2" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
             </div>
 
             <div class="d-grid gap-2">
@@ -74,5 +79,35 @@
             </div>
         </form>
     </div>
+
+    <script>
+        const form = document.getElementById('staffRegistrationForm');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const message = document.getElementById('passwordMismatchMessage');
+
+        function validatePasswords() {
+            const match = password.value === confirmPassword.value;
+
+            if (confirmPassword.value && !match) {
+                message.classList.remove('d-none');
+                confirmPassword.setCustomValidity('Passwords do not match.');
+            } else {
+                message.classList.add('d-none');
+                confirmPassword.setCustomValidity('');
+            }
+
+            return match;
+        }
+
+        password.addEventListener('input', validatePasswords);
+        confirmPassword.addEventListener('input', validatePasswords);
+
+        form.addEventListener('submit', function (event) {
+            if (!validatePasswords()) {
+                event.preventDefault();
+            }
+        });
+    </script>
 </body>
 </html>

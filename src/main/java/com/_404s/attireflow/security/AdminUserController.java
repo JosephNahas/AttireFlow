@@ -1,8 +1,11 @@
 package com._404s.attireflow.security;
 
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,19 +21,32 @@ public class AdminUserController {
     }
 
     @PostMapping("/admin/register-staff")
-    public String registerStaff(@ModelAttribute StaffRegistrationForm staffRegistrationForm,
+    public String registerStaff(@Valid @ModelAttribute StaffRegistrationForm staffRegistrationForm,
+                                BindingResult bindingResult,
+                                Model model,
                                 RedirectAttributes redirectAttributes) {
-        try {
-            appUserService.registerUser(
-                    staffRegistrationForm.getUsername(),
-                    staffRegistrationForm.getPassword(),
-                    staffRegistrationForm.getRole()
-            );
-            redirectAttributes.addFlashAttribute("successMessage", "Staff user registered successfully.");
-        } catch (IllegalArgumentException ex) {
-            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+
+        if (staffRegistrationForm.getPassword() != null
+                && !staffRegistrationForm.getPassword().equals(staffRegistrationForm.getConfirmPassword())) {
+            bindingResult.rejectValue("confirmPassword", "passwordMismatch", "Passwords do not match.");
         }
 
+        if (appUserService.usernameExists(staffRegistrationForm.getUsername())) {
+            bindingResult.rejectValue("username", "usernameExists", "Username already exists.");
+        }
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("staffRegistrationForm", staffRegistrationForm);
+            return "registration";
+        }
+
+        appUserService.registerUser(
+                staffRegistrationForm.getUsername(),
+                staffRegistrationForm.getPassword(),
+                staffRegistrationForm.getRole()
+        );
+
+        redirectAttributes.addFlashAttribute("successMessage", "Staff user registered successfully.");
         return "redirect:/admin";
     }
 

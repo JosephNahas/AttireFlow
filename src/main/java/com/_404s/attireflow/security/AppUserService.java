@@ -19,6 +19,10 @@ public class AppUserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    public boolean usernameExists(String username) {
+        return appUserRepository.existsByUsername(username);
+    }
+
     public AppUser registerUser(String username, String rawPassword, AppRole role) {
         if (appUserRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
