@@ -123,6 +123,26 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- remove stock form -->
+        <div class="card" style="margin-top: 20px; flex-direction: column !important">
+            <h2 style="padding: 0 !important;">Remove Stock</h2>
+            <form th:action="@{'/inventory/' + ${details.variant.id} + '/stock/remove'}" method="post" style="margin-top: 20px;">
+                <div class="form-group">
+                    <label>Location Name:</label>
+                    <input type="text" name="locationName" class="form-control" placeholder="Enter location name" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity to Remove:</label>
+                    <input type="number" name="quantity" min="1" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Bin Location (optional):</label>
+                    <input type="text" name="binLocation" class="form-control" placeholder="Enter bin location">
+                </div>
+                <button type="submit" class="btn btn-danger" style="margin-top: 10px;">Remove Stock</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
