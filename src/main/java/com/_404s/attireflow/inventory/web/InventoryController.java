@@ -1,18 +1,22 @@
 package com._404s.attireflow.inventory.web;
 
+import java.math.BigDecimal;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com._404s.attireflow.inventory.model.Variant;
 import com._404s.attireflow.inventory.repo.VariantRepository;
 import com._404s.attireflow.inventory.service.InventoryService;
 import com._404s.attireflow.inventory.service.VariantDetails;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.security.access.prepost.PreAuthorize;
-
-import java.math.BigDecimal;
 
 @Controller
 public class InventoryController {
@@ -26,7 +30,7 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory")
-        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String inventory(@RequestParam(required = false) String title,
                             @RequestParam(required = false) String size,
                             @RequestParam(required = false) String color,
@@ -89,14 +93,32 @@ public class InventoryController {
         return "inventory";
     }
 
+    @PostMapping("/inventory/{id}/stock/remove")
+@PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+public String removeStock(@PathVariable Long id,
+                          @RequestParam String locationName,
+                          @RequestParam Integer quantity,
+                          @RequestParam(required = false) String binLocation,
+                          RedirectAttributes redirectAttributes) {
+    try {
+        inventoryService.removeStock(id, locationName, quantity, binLocation);
+        redirectAttributes.addFlashAttribute("successMessage", "Stock removed successfully.");
+    } catch (IllegalArgumentException ex) {
+        redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+    } catch (Exception ex) {
+        redirectAttributes.addFlashAttribute("errorMessage", "Unable to remove stock. Please try again.");
+    }
+    return "redirect:/inventory/" + id;
+}
+
     @GetMapping("/inventory/new")
-        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String newVariantForm() {
         return "redirect:/inventory";
     }
 
     @PostMapping("/inventory/new")
-        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String createVariant(@RequestParam String title,
                                 @RequestParam String category,
                                 @RequestParam String size,
@@ -140,15 +162,14 @@ public class InventoryController {
     }
 
     @GetMapping("/inventory/{id}/stock/new")
-        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String addStockForm() {
         return "redirect:/inventory";
     }
 
     @PostMapping("/inventory/{id}/stock/new")
-        @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
     public String addStock(@PathVariable Long id,
-                           @RequestParam(required = false) Long locationId,
+                           @RequestParam(required = false) String locationName, 
                            @RequestParam(required = false) Integer quantity,
                            @RequestParam(required = false) String binLocation,
                            RedirectAttributes redirectAttributes) {
@@ -156,19 +177,19 @@ public class InventoryController {
         Variant variant = inventoryService.getVariant(id);
 
         redirectAttributes.addFlashAttribute("addStockVariant", variant);
-        redirectAttributes.addFlashAttribute("selectedLocationId", locationId);
+        redirectAttributes.addFlashAttribute("selectedLocationName", locationName);  
         redirectAttributes.addFlashAttribute("selectedBinLocation", binLocation);
         redirectAttributes.addFlashAttribute("enteredQuantity", quantity);
 
         try {
-            if (locationId == null) {
-                throw new IllegalArgumentException("Please select a location.");
+            if (locationName == null || locationName.trim().isEmpty()) { 
+                throw new IllegalArgumentException("Please enter a location.");
             }
             if (quantity == null) {
                 throw new IllegalArgumentException("Please enter a quantity.");
             }
 
-            inventoryService.addStock(id, locationId, quantity, binLocation);
+            inventoryService.addStock(id, locationName, quantity, binLocation);
             redirectAttributes.addFlashAttribute("successMessage", "Stock added successfully.");
             return "redirect:/inventory";
         } catch (IllegalArgumentException ex) {
@@ -190,7 +211,6 @@ public class InventoryController {
 
     @PostMapping("/inventory/{id}/edit")
     @PreAuthorize("hasRole('INVENTORY_MANAGER') or hasRole('ADMIN')")
-
     public String updateVariant(@PathVariable Long id,
                                 @RequestParam String title,
                                 @RequestParam String category,
@@ -235,28 +255,30 @@ public class InventoryController {
             return "redirect:/inventory";
         }
     }
-@PostMapping("/inventory/{id}/delete")
-@PreAuthorize("hasRole('ADMIN')")
-public String deleteVariant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-    try {
-        Variant variant = variantRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Variant not found"));
-        
-        System.err.println("DELETING VARIANT ID: " + id);
-        System.err.println("Deliveries count: " + variant.getDeliveries().size());
-        
-        if (variant.getDeliveries() != null && !variant.getDeliveries().isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Cannot delete this item because it has " + variant.getDeliveries().size() + 
-                " delivery(s) linked. Please cancel deliveries first.");
-            return "redirect:/inventory";
+    
+    @PostMapping("/inventory/{id}/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deleteVariant(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            Variant variant = variantRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Variant not found"));
+            
+            System.err.println("DELETING VARIANT ID: " + id);
+            System.err.println("Deliveries count: " + variant.getDeliveries().size());
+            
+            if (variant.getDeliveries() != null && !variant.getDeliveries().isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Cannot delete this item because it has " + variant.getDeliveries().size() + 
+                    " delivery(s) linked. Please cancel deliveries first.");
+                return "redirect:/inventory";
+            }
+            
+            variantRepository.delete(variant);
+            redirectAttributes.addFlashAttribute("successMessage", "Variant deleted successfully.");
+            
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting variant: " + ex.getMessage());
         }
-        
-        variantRepository.delete(variant);
-        redirectAttributes.addFlashAttribute("successMessage", "Variant deleted successfully.");
-        
-    } catch (Exception ex) {
-        redirectAttributes.addFlashAttribute("errorMessage", "Error deleting variant: " + ex.getMessage());
+        return "redirect:/inventory";
     }
-    return "redirect:/inventory";
-}}
+}

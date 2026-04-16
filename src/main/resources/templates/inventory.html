@@ -25,6 +25,33 @@
             text-align: left; 
             vertical-align: top;
         }
+        
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .add-btn:hover {
+            background-color: #218838;
+        }
+        
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 
@@ -43,7 +70,7 @@
         </div>
 
         <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}">Success</div>
-<div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}">Error</div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}">Error</div>
 
         <div class="card" style="margin: 20px 0;">
             <form method="get" th:action="@{/inventory}">
@@ -102,8 +129,6 @@
             </form>
         </div>
 
-        <!-- content -->
-
         <div class="row row-cols-3" style="gap: 20px 0;">
             <div class="col" th:each="row : ${inventoryPage.content}">
                 <div class="card h-100 g-4" style="flex-direction: column !important;">
@@ -148,7 +173,6 @@
                         </ul>
                     </div>
 
-                    <!-- action buttons -->
                     <div class="row row-cols-2 g-2">
                         <div class="col">
                             <form th:action="@{'/inventory/' + ${row.variant.id}}" method="get">
@@ -157,21 +181,37 @@
                         </div>
 
                         <div class="col">
-                            <button type="button"
-                                    class="btn add-btn open-add-stock-modal w-100"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#addStockModal"
-                                    th:attr="data-variant-id=${row.variant.id},
-                                            data-variant-title=${row.variant.title},
-                                            data-variant-color=${row.variant.color},
-                                            data-variant-size=${row.variant.size}">
-                                Add Stock
-                            </button>
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <button type="button"
+                                            class="btn add-btn w-100 open-add-stock-modal"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addStockModal"
+                                            th:attr="data-variant-id=${row.variant.id},
+                                                    data-variant-title=${row.variant.title},
+                                                    data-variant-color=${row.variant.color},
+                                                    data-variant-size=${row.variant.size}">
+                                        +
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button"
+                                            class="btn remove-btn w-100 open-remove-stock-modal"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#removeStockModal"
+                                            th:attr="data-variant-id=${row.variant.id},
+                                                    data-variant-title=${row.variant.title},
+                                                    data-variant-color=${row.variant.color},
+                                                    data-variant-size=${row.variant.size}">
+                                        -
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col">
                             <button type="button"
-                                    class="btn btn-secondary open-edit-variant-modal w-100"
+                                    class="btn btn-secondary w-100 open-edit-variant-modal"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editVariantModal"
                                     th:attr="data-variant-id=${row.variant.id},
@@ -186,7 +226,7 @@
 
                         <div class="col">
                             <form th:action="@{'/inventory/' + ${row.variant.id} + '/delete'}" method="post">
-                                <button type="submit" class="btn delete-btn w-100" style="width: 100%;">Delete</button>
+                                <button type="submit" class="btn delete-btn w-100">Delete</button>
                             </form>
                         </div>
                     </div>
@@ -207,7 +247,6 @@
         </div>
     </div>
     
-    <!-- Modals -->
     <div th:replace="~{fragments/inventory-modals :: inventoryModals}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -215,6 +254,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const editForm = document.getElementById('editVariantFormElement');
             const addStockForm = document.getElementById('addStockFormElement');
+            const removeStockForm = document.getElementById('removeStockFormElement');
 
             document.querySelectorAll('.open-edit-variant-modal').forEach(button => {
                 button.addEventListener('click', function () {
@@ -235,6 +275,15 @@
                     document.getElementById('stockVariantTitle').value =
                         this.dataset.variantTitle + ' - ' + this.dataset.variantColor + ' (' + this.dataset.variantSize + ')';
                     addStockForm.action = '/inventory/' + id + '/stock/new';
+                });
+            });
+
+            document.querySelectorAll('.open-remove-stock-modal').forEach(button => {
+                button.addEventListener('click', function () {
+                    const id = this.dataset.variantId;
+                    document.getElementById('removeStockVariantTitle').value =
+                        this.dataset.variantTitle + ' - ' + this.dataset.variantColor + ' (' + this.dataset.variantSize + ')';
+                    removeStockForm.action = '/inventory/' + id + '/stock/remove';
                 });
             });
 

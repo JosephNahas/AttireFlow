@@ -11,7 +11,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <div th:if="${openModal == 'newDeliveryModal' and errorMessage}" class="alert alert-danger" th:text="${errorMessage}">Error</div>
+<div th:if="${openModal == 'newDeliveryModal' and errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}">Error</div>
 
                         <div class="row g-3">
                             <div class="col-md-6">

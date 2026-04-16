@@ -8,4 +8,6 @@ import java.util.List;
 public interface InventoryLocationRepository extends CrudRepository<InventoryLocation, Long> {
 
     List<InventoryLocation> findAllByOrderByNameAsc();
+    
+    InventoryLocation findByName(String name);
 }

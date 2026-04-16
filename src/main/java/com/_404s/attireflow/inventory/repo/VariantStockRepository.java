@@ -14,4 +14,6 @@ public interface VariantStockRepository extends CrudRepository<VariantStock, Lon
            order by vs.binLocation
            """)
     List<String> findDistinctBinLocations();
+
+    VariantStock findByVariantIdAndLocationName(Long variantId, String locationName);
 }

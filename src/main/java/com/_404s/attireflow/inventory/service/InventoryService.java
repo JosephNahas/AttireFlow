@@ -157,22 +157,30 @@ public class InventoryService {
     }
 
     @Transactional
-    public void addStock(long variantId, long locationId, int quantity, String binLocation) {
+    public void addStock(long variantId, String locationName, int quantity, String binLocation) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0.");
         }
         if (binLocation == null || binLocation.trim().isEmpty()) {
-            throw new IllegalArgumentException("Please select a bin location.");
+            throw new IllegalArgumentException("Please enter a bin location.");
+        }
+        if (locationName == null || locationName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Please enter a location.");
         }
 
         Variant variant = variantRepository.findByIdWithStocks(variantId)
                 .orElseThrow(() -> new IllegalArgumentException("Variant not found: " + variantId));
 
-        InventoryLocation location = inventoryLocationRepository.findById(locationId)
-                .orElseThrow(() -> new IllegalArgumentException("Please select a valid location."));
+        InventoryLocation location = inventoryLocationRepository.findByName(locationName.trim());
+        if (location == null) {
+            location = new InventoryLocation();
+            location.setName(locationName.trim());
+            location.setType("Warehouse");
+            location = inventoryLocationRepository.save(location);
+        }
 
         for (VariantStock stock : variant.getStocks()) {
-            if (stock.getLocation().getId().equals(locationId)) {
+            if (stock.getLocation().getName().equalsIgnoreCase(locationName.trim())) {
                 stock.setQuantity(stock.getQuantity() + quantity);
                 stock.setBinLocation(binLocation);
                 variantStockRepository.save(stock);
@@ -187,5 +195,32 @@ public class InventoryService {
         newStock.setBinLocation(binLocation);
 
         variantStockRepository.save(newStock);
+    }
+
+    @Transactional
+    public void removeStock(long variantId, String locationName, int quantity, String binLocation) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0.");
+        }
+        if (locationName == null || locationName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Please enter a location.");
+        }
+
+        VariantStock stock = variantStockRepository.findByVariantIdAndLocationName(variantId, locationName.trim());
+        
+        if (stock == null) {
+            throw new IllegalArgumentException("No stock found at location: " + locationName);
+        }
+        
+        int newQuantity = stock.getQuantity() - quantity;
+        if (newQuantity < 0) {
+            throw new IllegalArgumentException("Cannot remove more stock than available. Current stock: " + stock.getQuantity());
+        }
+        
+        stock.setQuantity(newQuantity);
+        if (binLocation != null && !binLocation.trim().isEmpty()) {
+            stock.setBinLocation(binLocation);
+        }
+        variantStockRepository.save(stock);
     }
 }

@@ -7,10 +7,13 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
 
-@Component
+
+// @Component
+@Profile("!qa")
 public class DatabaseSeeder implements ApplicationRunner {
 
     private final VariantRepository variantRepository;
@@ -33,7 +36,7 @@ public class DatabaseSeeder implements ApplicationRunner {
         boolean hasDeliveries = deliveryRepository.count() > 0;
 
         if (hasVariants && hasDeliveries) {
-            return; // DB already has seeded data
+            return; 
         }
 
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
